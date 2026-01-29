@@ -63,10 +63,9 @@
   <div id="status"></div>
 
   <script>
-    const HOST = "http://10.246.122.144:5000";
 
     function sendVote(vote) {
-      fetch(`${HOST}/vote`, {
+      fetch("/vote", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

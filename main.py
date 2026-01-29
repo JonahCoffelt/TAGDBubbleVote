@@ -11,24 +11,33 @@ import signal
 HOST = "http://127.0.0.1:5000"
 REFRESH_SECONDS = 1.0
 
+def calc_gravity(m: float, p1: glm.vec2, p2: glm.vec2) -> glm.vec2:
+    dist2 = glm.distance2(p1, p2)
+    if dist2 < 0.00001: return 0
+
+    F = m / dist2
+    direction = glm.normalize(p1 - p2)
+
+    return F * direction
+
 class Bubble:
-    def __init__(self, app, position: glm.vec2, velocity: glm.vec2=glm.vec2(0, 0)) -> None:
+    def __init__(self, app, position: glm.vec2, velocity: glm.vec2=None, color: glm.vec3=None) -> None:
         self.app = app
         self.position = position
-        self.velocity = velocity
+        self.velocity = velocity or glm.vec2(0)
         self.acceleration = glm.vec2(0)
-        self.mass = 10
         self.vote = False
+        self.color = color or glm.vec3(255)
+        self.target_color = self.color
 
     def update(self):
         center_range = 15
         self.center = glm.vec2(center_range - center_range * 2 * self.vote, 0)
-        dist2 = glm.distance2(self.center, self.position)
-        if dist2 == 0: dist2 = 0.001
 
-        F = self.mass * 50000 / dist2
-        direction = glm.normalize(self.center - self.position)
-        self.acceleration = direction * F / self.mass
+        self.acceleration += calc_gravity(50000, self.center, self.position)
+        for other in app.bubbles.values():
+            if other == self: continue
+            self.acceleration -= calc_gravity(1000, glm.vec2(other.position), glm.vec2(self.position))
         self.acceleration = glm.clamp(self.acceleration, -20, 20)
         
         self.velocity += self.acceleration * self.app.dt
@@ -36,8 +45,14 @@ class Bubble:
 
         self.position += self.velocity * app.dt
 
+        color_diff = self.target_color - self.color
+        if color_diff: self.color += color_diff * app.dt
+
     def render(self):
-        pg.draw.circle(self.app.win, (0, 0, 255), self.app.center + self.position * app.unit, app.unit)
+        color = glm.clamp(self.color, 0, 255)
+        color = (int(self.color.r), int(self.color.y), int(self.color.z))
+        pg.draw.circle(self.app.win, color, self.app.center + self.position * app.unit, app.unit)
+        pg.draw.circle(self.app.win, (240, 240, 240), self.app.center + self.position * app.unit, app.unit, 2)
 
 class App:
     def __init__(self):
@@ -50,8 +65,8 @@ class App:
         self.unit = 25
         self.win_size = glm.vec2(800, 800)
         self.center = self.win_size / 2
-        self.bubbles = {"1.1.1.1" : Bubble(self, glm.vec2(1, 0), glm.vec2(1, 10))}
-        self.votes = {}
+        # self.bubbles = {i : Bubble(self, glm.vec2(random.randrange(-5, 5), random.randrange(-5, 5)), glm.vec2(0, 0), glm.vec3(235 + random.randrange(-20, 20), 20 + random.randrange(-20, 20), 20 + random.randrange(-20, 20))) for i in range(20)}
+        self.bubbles = {}
 
     def update(self):
         self.dt = self.clock.tick(60) / 1000
@@ -74,9 +89,21 @@ class App:
                 self.win_size.x = width
                 self.win_size.y = height
                 self.center = self.win_size / 2
+            elif event.type == pg.MOUSEWHEEL:
+                self.unit += event.y * 2
+                self.unit = glm.clamp(self.unit, 2, 100)
+            elif event.type == pg.KEYDOWN:
+                if event.key == pg.K_SPACE:
+                    for bubble in self.bubbles.values():
+                        bubble.vote = not bubble.vote
+                        if bubble.vote:
+                            bubble.target_color = glm.vec3(20 + random.randrange(-20, 20), 235 + random.randrange(-20, 20), 20 + random.randrange(-20, 20))
+                        else:
+                            bubble.target_color = glm.vec3(235 + random.randrange(-20, 20), 20 + random.randrange(-20, 20), 20 + random.randrange(-20, 20))
+
 
     def render(self):
-        self.win.fill((0, 0, 0, 255))
+        self.win.fill((15, 15, 15, 255))
 
         for bubble in self.bubbles.values():
             bubble.render()
@@ -94,7 +121,15 @@ class App:
             if ip not in self.bubbles:
                 bubble = Bubble(self, glm.vec2(random.randrange(-5, 5), random.randrange(-5, 5)), glm.vec2(1, 0))
                 self.bubbles[ip] = bubble
-            self.bubbles[ip].vote = vote
+
+            bubble = self.bubbles[ip]
+
+            if bubble.vote != vote:
+                if vote:
+                    bubble.target_color = glm.vec3(20 + random.randrange(-20, 20), 235 + random.randrange(-20, 20), 20 + random.randrange(-20, 20))
+                else:
+                    bubble.target_color = glm.vec3(235 + random.randrange(-20, 20), 20 + random.randrange(-20, 20), 20 + random.randrange(-20, 20))
+                self.bubbles[ip].vote = vote
 
     def start(self):
         self.running = True

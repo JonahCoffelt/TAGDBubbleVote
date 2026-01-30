@@ -8,7 +8,7 @@ import os
 import sys
 import signal
 
-HOST = "http://127.0.0.1:5000"
+HOST = "http://127.0.0.1:5001"
 REFRESH_SECONDS = 1.0
 
 def calc_gravity(m: float, p1: glm.vec2, p2: glm.vec2) -> glm.vec2:

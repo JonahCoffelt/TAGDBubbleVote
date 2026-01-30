@@ -31,7 +31,7 @@ def vote():
 def get_votes():
     return jsonify(votes)
 
-def get_local_url(port=5000):
+def get_local_url(port=5001):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         # This never actually sends packets, it just forces IP selection
@@ -62,4 +62,4 @@ correction = 4                  # 1 has the least correction and 4 has the most
 
 generate_qr_code(url, qr_code_name, box_size, border, light_color, dark_color, image_name, img_size, correction)
 
-app.run(host="0.0.0.0", port=5000, debug=True)
+app.run(host="0.0.0.0", port=5001, debug=True)

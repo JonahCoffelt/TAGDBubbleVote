@@ -21,6 +21,11 @@
       margin-bottom: 2rem;
     }
 
+    .buttons {
+      display: flex;
+      gap: 1rem;
+    }
+
     button {
       font-size: 1.5rem;
       padding: 1rem 2.5rem;
@@ -36,13 +41,13 @@
       opacity: 0.85;
     }
 
-    .yes {
+    .left {
       background: #2ecc71;
       color: #000;
     }
 
-    .no {
-      background: #e74c3c;
+    .right {
+      background: #3c6ae7;
       color: #000;
     }
 
@@ -57,8 +62,10 @@
 
   <h1>Cast Your Vote</h1>
 
-  <button class="yes" onclick="sendVote(true)">Yes</button>
-  <button class="no" onclick="sendVote(false)">No</button>
+  <div class="buttons">
+    <button class="left" onclick="sendVote(true)">Left</button>
+    <button class="right" onclick="sendVote(false)">Right</button>
+  </div>
 
   <div id="status"></div>
 

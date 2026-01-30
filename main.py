@@ -99,7 +99,7 @@ class App:
                         if bubble.vote:
                             bubble.target_color = glm.vec3(20 + random.randrange(-20, 20), 235 + random.randrange(-20, 20), 20 + random.randrange(-20, 20))
                         else:
-                            bubble.target_color = glm.vec3(235 + random.randrange(-20, 20), 20 + random.randrange(-20, 20), 20 + random.randrange(-20, 20))
+                            bubble.target_color = glm.vec3(20 + random.randrange(-20, 20), 20 + random.randrange(-20, 20), 235 + random.randrange(-20, 20))
 
 
     def render(self):
@@ -114,13 +114,18 @@ class App:
         response = requests.get(f"{HOST}/votes", timeout=1)
         votes = response.json()
 
-        print("Current Votes\n" + "-" * 20)
-        print(votes)
+        left_count = sum(1 for v in votes.values() if v)
+        right_count = sum(1 for v in votes.values() if not v)
+        print(f"Left: {left_count}  |  Right: {right_count}")
 
         for (ip, vote) in votes.items():
             if ip not in self.bubbles:
                 bubble = Bubble(self, glm.vec2(random.randrange(-5, 5), random.randrange(-5, 5)), glm.vec2(1, 0))
                 self.bubbles[ip] = bubble
+                if vote:
+                    bubble.target_color = glm.vec3(20 + random.randrange(-20, 20), 235 + random.randrange(-20, 20), 20 + random.randrange(-20, 20))
+                else:
+                    bubble.target_color = glm.vec3(20 + random.randrange(-20, 20), 20 + random.randrange(-20, 20), 235 + random.randrange(-20, 20))
 
             bubble = self.bubbles[ip]
 
@@ -128,7 +133,7 @@ class App:
                 if vote:
                     bubble.target_color = glm.vec3(20 + random.randrange(-20, 20), 235 + random.randrange(-20, 20), 20 + random.randrange(-20, 20))
                 else:
-                    bubble.target_color = glm.vec3(235 + random.randrange(-20, 20), 20 + random.randrange(-20, 20), 20 + random.randrange(-20, 20))
+                    bubble.target_color = glm.vec3(20 + random.randrange(-20, 20), 20 + random.randrange(-20, 20), 235 + random.randrange(-20, 20))
                 self.bubbles[ip].vote = vote
 
     def start(self):
